@@ -205,5 +205,151 @@
         }
       ]
     }
+  },
+  "getOne": {
+    "title": "Get a product",
+    "api": {
+      "method": "get",
+      "endpoint": "/products/{product_id}",
+      "queryParameters": [
+        {
+          "name": "include",
+          "description": "Include related entities in the response.",
+          "schema": {
+            "type": "string",
+            "enum": ["prices"],
+            "enum-descriptions": {
+              "prices": {
+                "description": "Include an array of prices related to this product."
+              }
+            }
+          }
+        }
+      ]
+    },
+    "pathParameters": [
+      {
+        "name": "product_id",
+        "description": "Paddle ID of the product entity to work with.",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ]
+  },
+  "update": {
+    "title": "Get a product",
+    "api": {
+      "method": "patch",
+      "endpoint": "/products",
+      "bodyParameters": [
+        {
+          "name": "name",
+          "description": "Name of this product.",
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        {
+          "name": "description",
+          "description": "Short description for this product.",
+          "schema": {
+            "type": ["string", "null"],
+            "maxLength": 2048
+          }
+        },
+        {
+          "name": "tax_category",
+          "description": "Tax category for this product. Used for charging the correct rate of tax. Selected tax category must be enabled on your Paddle account.",
+          "schema": {
+            "type": "string",
+            "enum": [
+              "digital-goods",
+              "ebooks",
+              "implementation-services",
+              "professional-services",
+              "saas",
+              "software-programming-services",
+              "standard",
+              "training-services",
+              "website-hosting"
+            ],
+            "enum-descriptions": {
+              "digital-goods": {
+                "description": "Non-customizable digital files or media (not software) acquired with an up front payment that can be accessed without any physical product being delivered."
+              },
+              "ebooks": {
+                "description": "Digital books and educational material which is sold with permanent rights for use by the customer."
+              },
+              "implementation-services": {
+                "description": "Remote configuration, set-up, and integrating software on behalf of a customer."
+              },
+              "professional-services": {
+                "description": "Services that involve the application of your expertise and specialized knowledge of a software product."
+              },
+              "saas": {
+                "description": "Products that allow users to connect to and use online or cloud-based applications over the Internet."
+              },
+              "software-programming-services": {
+                "description": "Services that can be used to customize and white label software products."
+              },
+              "standard": {
+                "description": "Software products that are pre-written and can be downloaded and installed onto a local device."
+              },
+              "training-services": {
+                "description": "Training and education services related to software products."
+              },
+              "website-hosting": {
+                "description": "Cloud storage service for personal or corporate information, assets, or intellectual property."
+              }
+            }
+          }
+        },
+        {
+          "name": "image_url",
+          "description": "Image for this product. Included in the checkout and on some customer documents.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "custom_data",
+          "description": "Your own structured key-value data.",
+          "schema": {
+            "type": ["object", "null"]
+          }
+        },
+        {
+          "name": "status",
+          "description": "Whether this entity can be used in Paddle.",
+          "schema": {
+            "type": "string",
+            "enum": ["active", "archived"],
+            "enum-descriptions": {
+              "active": {
+                "description": "Entity is active and can be used."
+              },
+              "archived": {
+                "description": "Entity is archived, so can't be used."
+              }
+            },
+            "default": "active"
+          }
+        }
+      ]
+    },
+    "pathParameters": [
+      {
+        "name": "product_id",
+        "description": "Paddle ID of the product entity to work with.",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ]
   }
 }

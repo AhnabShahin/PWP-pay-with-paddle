@@ -1,0 +1,1637 @@
+{
+    "title": "Prices",
+    "list": {
+      "title": "List prices",
+      "api": {
+        "method": "get",
+        "endpoint": "/prices",
+        "queryParameters": [
+            {
+                "name": "after",
+                "description": "Return entities after the specified cursor. Used for working through paginated results.",
+                "schema": {
+                    "type": ["string"]
+                }
+            },
+            {
+                "name": "id",
+                "description": "Return only the IDs specified. Use a comma separated list to get multiple entities.",
+                "schema": {
+                    "type": ["string"]
+                }
+            },
+            {
+                "name": "include",
+                "description": "Include related entities in the response.",
+                "schema": {
+                    "type": ["string"],
+                    "enum": [
+                        "product"
+                    ],
+                    "enum-descriptions": {
+                        "product": {
+                            "description": "Include an object with the product related to this price."
+                        }
+                    }
+                }
+            },
+            {
+                "name": "order_by",
+                "description": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`).",
+                "schema": {
+                    "enum": [
+                        "DESC",
+                        "ASC"
+                    ],
+                    "type": "string",
+                    "default": "ASC"
+                }
+            },
+            {
+                "name": "per_page",
+                "description": "Set how many entities are returned per page.",
+                "schema": {
+                    "type": "integer",
+                    "default": 10
+                }
+            },
+            {
+                "name": "product_id",
+                "description": "Return entities related to the specified product. Use a comma separated list to specify multiple product IDs.",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            {
+                "name": "status",
+                "description": "Return entities that match the specified status. Use a comma separated list to specify multiple status values.",
+                "schema": {
+                    "type": "string",
+                    "default": "active",
+                    "enum": [
+                        "active",
+                        "archived"
+                    ],
+                    "enum-descriptions": {
+                        "active": {
+                            "description": "Return entities where the status is `active`. Returned entities can be used in Paddle and are returned when listing entities."
+                        },
+                        "archived": {
+                            "description": "Return entities where the status is `archived`. Returned entities can't be used for billing and aren't returned when listing entities."
+                        }
+                    }
+                }
+            },
+            {
+                "name": "recurring",
+                "description": "Determine whether returned entities are for recurring prices (`true`) or one-time prices (`false`).",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        ]
+      }
+    },
+    "create": {
+      "title": "Create a prices",
+      "api": {
+        "method": "post",
+        "endpoint": "/prices",
+        "bodyParameters": [
+            {"name": "product_id",
+            "description": "Paddle ID for the product that this price is for, prefixed with `pro_`.",
+            "schema": {
+                "type": "string",
+                "pattern": "^pro_[a-z\\d]{26}$"
+            }},
+            {"name":"description",
+            "description": "Short description for this price. Typically describes how often the related product bills.",
+            "schema":  {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 200
+            }},
+            {"name":"billing_cycle",
+            "description": "How often this price should be charged. `null` if price is non-recurring (one-time).",
+            "schema":  {
+                "type": ["object", "null"],
+                "properties": {
+                            "interval": {
+                                "description": "Unit of time.",
+                                "type": "string",
+                                "enum": [
+                                    "day",
+                                    "week",
+                                    "month",
+                                    "year"
+                                ],
+                                "required": true
+                            },
+                            "frequency": {
+                                "description": "Amount of time.",
+                                "type": "integer",
+                                "minimum": 1,
+                                "required": true
+                            }
+                        }
+                    }
+            },
+            {"name": "trial_period",
+            "description": "Trial period for the product related to this price. The billing cycle begins once the trial period is over. `null` for no trial period. Requires `billing_cycle`.",
+            "schema":  {
+                        "type": ["object", "null"],
+                        "properties": {
+                            "interval": {
+                                "description": "Unit of time.",
+                                "type": "string",
+                                "enum": [
+                                    "day",
+                                    "week",
+                                    "month",
+                                    "year"
+                                ],
+                                "required": true
+                            },
+                            "frequency": {
+                                "description": "Amount of time.",
+                                "type": "integer",
+                                "minimum": 1,
+                                "required": true
+                            }
+                        }
+                    }
+            },
+            {"name": "tax_mode", 
+            "schema":  {
+                "type": "string",
+                "enum": [
+                    "account_setting",
+                    "external",
+                    "internal"
+                ],
+                "default": "account_setting",
+                "enum-descriptions": {
+                    "account_setting": {
+                        "description": "Prices use the setting from your account."
+                    },
+                    "external": {
+                        "description": "Prices are exclusive of tax."
+                    },
+                    "internal": {
+                        "description": "Prices are inclusive of tax."
+                    }
+                }
+            }},
+            {"name": "unit_price",
+            "schema":  {
+                "description": "Base price. This price applies to all customers, except for customers located in countries where you have `unit_price_overrides`.",
+                "type": "object",
+                "required":true,
+                "properties": {
+                    "amount": {
+                        "type": "string",
+                        "required":true,
+                        "description": "Amount in the lowest denomination for the currency, e.g. 10 USD = 1000 (cents)."
+                    },
+                    "currency_code": {
+                        "description": "Supported three-letter ISO 4217 currency code.",
+                        "type": "string",
+                        "required":true,
+                        "enum": [
+                            "USD",
+                            "EUR",
+                            "GBP",
+                            "JPY",
+                            "AUD",
+                            "CAD",
+                            "CHF",
+                            "HKD",
+                            "SGD",
+                            "SEK",
+                            "ARS",
+                            "BRL",
+                            "CNY",
+                            "COP",
+                            "CZK",
+                            "DKK",
+                            "HUF",
+                            "ILS",
+                            "INR",
+                            "KRW",
+                            "MXN",
+                            "NOK",
+                            "NZD",
+                            "PLN",
+                            "RUB",
+                            "THB",
+                            "TRY",
+                            "TWD",
+                            "UAH",
+                            "ZAR"
+                        ],
+                        "maxLength": 3,
+                        "minLength": 3,
+                        "enum-descriptions": {
+                            "USD": {
+                                "description": "United States Dollar"
+                            },
+                            "EUR": {
+                                "description": "Euro"
+                            },
+                            "GBP": {
+                                "description": "Pound Sterling"
+                            },
+                            "JPY": {
+                                "description": "Japanese Yen"
+                            },
+                            "AUD": {
+                                "description": "Australian Dollar"
+                            },
+                            "CAD": {
+                                "description": "Canadian Dollar"
+                            },
+                            "CHF": {
+                                "description": "Swiss Franc"
+                            },
+                            "HKD": {
+                                "description": "Hong Kong Dollar"
+                            },
+                            "SGD": {
+                                "description": "Singapore Dollar"
+                            },
+                            "SEK": {
+                                "description": "Swedish Krona"
+                            },
+                            "ARS": {
+                                "description": "Argentine Peso"
+                            },
+                            "BRL": {
+                                "description": "Brazilian Real"
+                            },
+                            "CNY": {
+                                "description": "Chinese Yuan"
+                            },
+                            "COP": {
+                                "description": "Colombian Peso"
+                            },
+                            "CZK": {
+                                "description": "Czech Koruna"
+                            },
+                            "DKK": {
+                                "description": "Danish Krone"
+                            },
+                            "HUF": {
+                                "description": "Hungarian Forint"
+                            },
+                            "ILS": {
+                                "description": "Israeli Shekel"
+                            },
+                            "INR": {
+                                "description": "Indian Rupee"
+                            },
+                            "KRW": {
+                                "description": "South Korean Won"
+                            },
+                            "MXN": {
+                                "description": "Mexican Peso"
+                            },
+                            "NOK": {
+                                "description": "Norwegian Krone"
+                            },
+                            "NZD": {
+                                "description": "New Zealand Dollar"
+                            },
+                            "PLN": {
+                                "description": "Polish Zloty"
+                            },
+                            "RUB": {
+                                "description": "Russian Ruble"
+                            },
+                            "THB": {
+                                "description": "Thai Baht"
+                            },
+                            "TRY": {
+                                "description": "Turkish Lira"
+                            },
+                            "TWD": {
+                                "description": "New Taiwan Dollar"
+                            },
+                            "UAH": {
+                                "description": "Ukrainian Hryvnia"
+                            },
+                            "ZAR": {
+                                "description": "South African Rand"
+                            }
+                        }
+                    }
+                }
+            }},
+            {"name":"unit_price_overrides",
+            "schema": {
+                "description": "List of unit price overrides. Use to override the base price with a custom price and currency for a country or group of countries.",
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "country_codes": {
+                            "description": "Supported two-letter ISO 3166-1 alpha-2 country code. Customers located in the listed countries are charged the override price.",
+                            "type": "array",
+                            "uniqueItems": true,
+                            "minItems": 1,
+                            "required":true,
+                            "items": {
+                                "title": "Country code",
+                                "type": "string",
+                                "required":true,
+                                "description": "Supported two-letter ISO 3166-1 alpha-2 country code.",
+                                "enum": [
+                                    "AD",
+                                    "AE",
+                                    "AG",
+                                    "AI",
+                                    "AL",
+                                    "AM",
+                                    "AO",
+                                    "AR",
+                                    "AS",
+                                    "AT",
+                                    "AU",
+                                    "AW",
+                                    "AX",
+                                    "AZ",
+                                    "BA",
+                                    "BB",
+                                    "BD",
+                                    "BE",
+                                    "BF",
+                                    "BG",
+                                    "BH",
+                                    "BI",
+                                    "BJ",
+                                    "BM",
+                                    "BN",
+                                    "BO",
+                                    "BQ",
+                                    "BR",
+                                    "BS",
+                                    "BT",
+                                    "BV",
+                                    "BW",
+                                    "BZ",
+                                    "CA",
+                                    "CC",
+                                    "CG",
+                                    "CH",
+                                    "CI",
+                                    "CK",
+                                    "CL",
+                                    "CM",
+                                    "CN",
+                                    "CO",
+                                    "CR",
+                                    "CV",
+                                    "CW",
+                                    "CX",
+                                    "CY",
+                                    "CZ",
+                                    "DE",
+                                    "DJ",
+                                    "DK",
+                                    "DM",
+                                    "DO",
+                                    "DZ",
+                                    "EC",
+                                    "EE",
+                                    "EG",
+                                    "EH",
+                                    "ER",
+                                    "ES",
+                                    "ET",
+                                    "FI",
+                                    "FJ",
+                                    "FK",
+                                    "FM",
+                                    "FO",
+                                    "FR",
+                                    "GA",
+                                    "GB",
+                                    "GD",
+                                    "GE",
+                                    "GF",
+                                    "GG",
+                                    "GH",
+                                    "GI",
+                                    "GL",
+                                    "GM",
+                                    "GN",
+                                    "GP",
+                                    "GQ",
+                                    "GR",
+                                    "GS",
+                                    "GT",
+                                    "GU",
+                                    "GW",
+                                    "GY",
+                                    "HK",
+                                    "HM",
+                                    "HN",
+                                    "HR",
+                                    "HU",
+                                    "ID",
+                                    "IE",
+                                    "IL",
+                                    "IM",
+                                    "IN",
+                                    "IO",
+                                    "IQ",
+                                    "IS",
+                                    "IT",
+                                    "JE",
+                                    "JM",
+                                    "JO",
+                                    "JP",
+                                    "KE",
+                                    "KG",
+                                    "KH",
+                                    "KI",
+                                    "KM",
+                                    "KN",
+                                    "KR",
+                                    "KW",
+                                    "KY",
+                                    "KZ",
+                                    "LA",
+                                    "LB",
+                                    "LC",
+                                    "LI",
+                                    "LK",
+                                    "LR",
+                                    "LS",
+                                    "LT",
+                                    "LU",
+                                    "LV",
+                                    "MA",
+                                    "MC",
+                                    "MD",
+                                    "ME",
+                                    "MF",
+                                    "MG",
+                                    "MH",
+                                    "MK",
+                                    "MN",
+                                    "MO",
+                                    "MP",
+                                    "MQ",
+                                    "MR",
+                                    "MS",
+                                    "MT",
+                                    "MU",
+                                    "MV",
+                                    "MW",
+                                    "MX",
+                                    "MY",
+                                    "MZ",
+                                    "NA",
+                                    "NC",
+                                    "NE",
+                                    "NF",
+                                    "NG",
+                                    "NL",
+                                    "NO",
+                                    "NP",
+                                    "NR",
+                                    "NU",
+                                    "NZ",
+                                    "OM",
+                                    "PA",
+                                    "PE",
+                                    "PF",
+                                    "PG",
+                                    "PH",
+                                    "PK",
+                                    "PL",
+                                    "PM",
+                                    "PN",
+                                    "PR",
+                                    "PS",
+                                    "PT",
+                                    "PW",
+                                    "PY",
+                                    "QA",
+                                    "RE",
+                                    "RO",
+                                    "RS",
+                                    "RW",
+                                    "SA",
+                                    "SB",
+                                    "SC",
+                                    "SE",
+                                    "SG",
+                                    "SH",
+                                    "SI",
+                                    "SJ",
+                                    "SK",
+                                    "SL",
+                                    "SM",
+                                    "SN",
+                                    "SR",
+                                    "ST",
+                                    "SV",
+                                    "SZ",
+                                    "TC",
+                                    "TD",
+                                    "TF",
+                                    "TG",
+                                    "TH",
+                                    "TJ",
+                                    "TK",
+                                    "TL",
+                                    "TM",
+                                    "TN",
+                                    "TO",
+                                    "TR",
+                                    "TT",
+                                    "TV",
+                                    "TW",
+                                    "TZ",
+                                    "UA",
+                                    "UG",
+                                    "UM",
+                                    "US",
+                                    "UY",
+                                    "UZ",
+                                    "VA",
+                                    "VC",
+                                    "VG",
+                                    "VI",
+                                    "VN",
+                                    "VU",
+                                    "WF",
+                                    "WS",
+                                    "XK",
+                                    "YT",
+                                    "ZA",
+                                    "ZM"
+                                ],
+                                "enum-descriptions": {
+                                    "AD": {
+                                        "description": "Andorra"
+                                    },
+                                    "AE": {
+                                        "description": "United Arab Emirates"
+                                    },
+                                    "AG": {
+                                        "description": "Antigua and Barbuda"
+                                    },
+                                    "AI": {
+                                        "description": "Anguilla"
+                                    },
+                                    "AL": {
+                                        "description": "Albania"
+                                    },
+                                    "AM": {
+                                        "description": "Armenia"
+                                    },
+                                    "AO": {
+                                        "description": "Angola"
+                                    },
+                                    "AR": {
+                                        "description": "Argentina"
+                                    },
+                                    "AS": {
+                                        "description": "American Samoa"
+                                    },
+                                    "AT": {
+                                        "description": "Austria"
+                                    },
+                                    "AU": {
+                                        "description": "Australia"
+                                    },
+                                    "AW": {
+                                        "description": "Aruba"
+                                    },
+                                    "AX": {
+                                        "description": "Aland Islands"
+                                    },
+                                    "AZ": {
+                                        "description": "Azerbaijan"
+                                    },
+                                    "BA": {
+                                        "description": "Bosnia and Herzegovina"
+                                    },
+                                    "BB": {
+                                        "description": "Barbados"
+                                    },
+                                    "BD": {
+                                        "description": "Bangladesh"
+                                    },
+                                    "BE": {
+                                        "description": "Belgium"
+                                    },
+                                    "BF": {
+                                        "description": "Burkina Faso"
+                                    },
+                                    "BG": {
+                                        "description": "Bulgaria"
+                                    },
+                                    "BH": {
+                                        "description": "Bahrain"
+                                    },
+                                    "BI": {
+                                        "description": "Burundi"
+                                    },
+                                    "BJ": {
+                                        "description": "Benin"
+                                    },
+                                    "BM": {
+                                        "description": "Bermuda"
+                                    },
+                                    "BN": {
+                                        "description": "Brunei"
+                                    },
+                                    "BO": {
+                                        "description": "Bolivia"
+                                    },
+                                    "BQ": {
+                                        "description": "Bonaire, Sint Eustatius and Saba"
+                                    },
+                                    "BR": {
+                                        "description": "Brazil"
+                                    },
+                                    "BS": {
+                                        "description": "Bahamas"
+                                    },
+                                    "BT": {
+                                        "description": "Bhutan"
+                                    },
+                                    "BV": {
+                                        "description": "Bouvet Island"
+                                    },
+                                    "BW": {
+                                        "description": "Botswana"
+                                    },
+                                    "BZ": {
+                                        "description": "Belize"
+                                    },
+                                    "CA": {
+                                        "description": "Canada"
+                                    },
+                                    "CC": {
+                                        "description": "Cocos Islands"
+                                    },
+                                    "CG": {
+                                        "description": "Republic of Congo"
+                                    },
+                                    "CH": {
+                                        "description": "Switzerland"
+                                    },
+                                    "CI": {
+                                        "description": "Cote D’Ivoire"
+                                    },
+                                    "CK": {
+                                        "description": "Cook Islands"
+                                    },
+                                    "CL": {
+                                        "description": "Chile"
+                                    },
+                                    "CM": {
+                                        "description": "Cameroon"
+                                    },
+                                    "CN": {
+                                        "description": "China"
+                                    },
+                                    "CO": {
+                                        "description": "Colombia"
+                                    },
+                                    "CR": {
+                                        "description": "Costa Rica"
+                                    },
+                                    "CV": {
+                                        "description": "Cape Verde"
+                                    },
+                                    "CW": {
+                                        "description": "Curaçao"
+                                    },
+                                    "CX": {
+                                        "description": "Christmas Island"
+                                    },
+                                    "CY": {
+                                        "description": "Cyprus"
+                                    },
+                                    "CZ": {
+                                        "description": "Czech Republic"
+                                    },
+                                    "DE": {
+                                        "description": "Germany"
+                                    },
+                                    "DJ": {
+                                        "description": "Djibouti"
+                                    },
+                                    "DK": {
+                                        "description": "Denmark"
+                                    },
+                                    "DM": {
+                                        "description": "Dominica"
+                                    },
+                                    "DO": {
+                                        "description": "Dominican Republic"
+                                    },
+                                    "DZ": {
+                                        "description": "Algeria"
+                                    },
+                                    "EC": {
+                                        "description": "Ecuador"
+                                    },
+                                    "EE": {
+                                        "description": "Estonia"
+                                    },
+                                    "EG": {
+                                        "description": "Egypt"
+                                    },
+                                    "EH": {
+                                        "description": "Western Sahara"
+                                    },
+                                    "ER": {
+                                        "description": "Eritrea"
+                                    },
+                                    "ES": {
+                                        "description": "Spain"
+                                    },
+                                    "ET": {
+                                        "description": "Ethiopia"
+                                    },
+                                    "FI": {
+                                        "description": "Finland"
+                                    },
+                                    "FJ": {
+                                        "description": "Fiji"
+                                    },
+                                    "FK": {
+                                        "description": "Falkland Islands"
+                                    },
+                                    "FM": {
+                                        "description": "Micronesia"
+                                    },
+                                    "FO": {
+                                        "description": "Faroe Islands"
+                                    },
+                                    "FR": {
+                                        "description": "France"
+                                    },
+                                    "GA": {
+                                        "description": "Gabon"
+                                    },
+                                    "GB": {
+                                        "description": "United Kingdom"
+                                    },
+                                    "GD": {
+                                        "description": "Grenada"
+                                    },
+                                    "GE": {
+                                        "description": "Georgia"
+                                    },
+                                    "GF": {
+                                        "description": "French Guiana"
+                                    },
+                                    "GG": {
+                                        "description": "Guernsey"
+                                    },
+                                    "GH": {
+                                        "description": "Ghana"
+                                    },
+                                    "GI": {
+                                        "description": "Gibraltar"
+                                    },
+                                    "GL": {
+                                        "description": "Greenland"
+                                    },
+                                    "GM": {
+                                        "description": "Gambia"
+                                    },
+                                    "GN": {
+                                        "description": "Guinea"
+                                    },
+                                    "GP": {
+                                        "description": "Guadeloupe"
+                                    },
+                                    "GQ": {
+                                        "description": "Equatorial Guinea"
+                                    },
+                                    "GR": {
+                                        "description": "Greece"
+                                    },
+                                    "GS": {
+                                        "description": "S. Georgia/ Sandwich Islands"
+                                    },
+                                    "GT": {
+                                        "description": "Guatemala"
+                                    },
+                                    "GU": {
+                                        "description": "Guam"
+                                    },
+                                    "GW": {
+                                        "description": "Guinea-Bissau"
+                                    },
+                                    "GY": {
+                                        "description": "Guyana"
+                                    },
+                                    "HK": {
+                                        "description": "Hong Kong"
+                                    },
+                                    "HM": {
+                                        "description": "Heard Island and McDonald Islands"
+                                    },
+                                    "HN": {
+                                        "description": "Honduras"
+                                    },
+                                    "HR": {
+                                        "description": "Croatia"
+                                    },
+                                    "HU": {
+                                        "description": "Hungary"
+                                    },
+                                    "ID": {
+                                        "description": "Indonesia"
+                                    },
+                                    "IE": {
+                                        "description": "Ireland"
+                                    },
+                                    "IL": {
+                                        "description": "Israel"
+                                    },
+                                    "IM": {
+                                        "description": "Isle of Man"
+                                    },
+                                    "IN": {
+                                        "description": "India"
+                                    },
+                                    "IO": {
+                                        "description": "British Indian Ocean"
+                                    },
+                                    "IQ": {
+                                        "description": "Iraq"
+                                    },
+                                    "IS": {
+                                        "description": "Iceland"
+                                    },
+                                    "IT": {
+                                        "description": "Italy"
+                                    },
+                                    "JE": {
+                                        "description": "Jersey"
+                                    },
+                                    "JM": {
+                                        "description": "Jamaica"
+                                    },
+                                    "JO": {
+                                        "description": "Jordan"
+                                    },
+                                    "JP": {
+                                        "description": "Japan"
+                                    },
+                                    "KE": {
+                                        "description": "Kenya"
+                                    },
+                                    "KG": {
+                                        "description": "Kyrgyzstan"
+                                    },
+                                    "KH": {
+                                        "description": "Cambodia"
+                                    },
+                                    "KI": {
+                                        "description": "Kiribati"
+                                    },
+                                    "KM": {
+                                        "description": "Comoros"
+                                    },
+                                    "KN": {
+                                        "description": "Saint Kitts and Nevis"
+                                    },
+                                    "KR": {
+                                        "description": "South Korea"
+                                    },
+                                    "KW": {
+                                        "description": "Kuwait"
+                                    },
+                                    "KY": {
+                                        "description": "Cayman Islands"
+                                    },
+                                    "KZ": {
+                                        "description": "Kazakhstan"
+                                    },
+                                    "LA": {
+                                        "description": "Lao People’s DR"
+                                    },
+                                    "LB": {
+                                        "description": "Lebanon"
+                                    },
+                                    "LC": {
+                                        "description": "Saint Lucia"
+                                    },
+                                    "LI": {
+                                        "description": "Liechtenstein"
+                                    },
+                                    "LK": {
+                                        "description": "Sri Lanka"
+                                    },
+                                    "LR": {
+                                        "description": "Liberia"
+                                    },
+                                    "LS": {
+                                        "description": "Lesotho"
+                                    },
+                                    "LT": {
+                                        "description": "Lithuania"
+                                    },
+                                    "LU": {
+                                        "description": "Luxembourg"
+                                    },
+                                    "LV": {
+                                        "description": "Latvia"
+                                    },
+                                    "MA": {
+                                        "description": "Morocco"
+                                    },
+                                    "MC": {
+                                        "description": "Monaco"
+                                    },
+                                    "MD": {
+                                        "description": "Moldova"
+                                    },
+                                    "ME": {
+                                        "description": "Montenegro"
+                                    },
+                                    "MF": {
+                                        "description": "Saint Martin"
+                                    },
+                                    "MG": {
+                                        "description": "Madagascar"
+                                    },
+                                    "MH": {
+                                        "description": "Marshall Islands"
+                                    },
+                                    "MK": {
+                                        "description": "Macedonia"
+                                    },
+                                    "MN": {
+                                        "description": "Mongolia"
+                                    },
+                                    "MO": {
+                                        "description": "Macao"
+                                    },
+                                    "MP": {
+                                        "description": "Northern Mariana Islands"
+                                    },
+                                    "MQ": {
+                                        "description": "Martinique"
+                                    },
+                                    "MR": {
+                                        "description": "Mauritania"
+                                    },
+                                    "MS": {
+                                        "description": "Montserrat"
+                                    },
+                                    "MT": {
+                                        "description": "Malta"
+                                    },
+                                    "MU": {
+                                        "description": "Mauritius"
+                                    },
+                                    "MV": {
+                                        "description": "Maldives"
+                                    },
+                                    "MW": {
+                                        "description": "Malawi"
+                                    },
+                                    "MX": {
+                                        "description": "Mexico"
+                                    },
+                                    "MY": {
+                                        "description": "Malaysia"
+                                    },
+                                    "MZ": {
+                                        "description": "Mozambique"
+                                    },
+                                    "NA": {
+                                        "description": "Namibia"
+                                    },
+                                    "NC": {
+                                        "description": "New Caledonia"
+                                    },
+                                    "NE": {
+                                        "description": "Niger"
+                                    },
+                                    "NF": {
+                                        "description": "Norfolk Island"
+                                    },
+                                    "NG": {
+                                        "description": "Nigeria"
+                                    },
+                                    "NL": {
+                                        "description": "Netherlands"
+                                    },
+                                    "NO": {
+                                        "description": "Norway"
+                                    },
+                                    "NP": {
+                                        "description": "Nepal"
+                                    },
+                                    "NR": {
+                                        "description": "Nauru"
+                                    },
+                                    "NU": {
+                                        "description": "Niue"
+                                    },
+                                    "NZ": {
+                                        "description": "New Zealand"
+                                    },
+                                    "OM": {
+                                        "description": "Oman"
+                                    },
+                                    "PA": {
+                                        "description": "Panama"
+                                    },
+                                    "PE": {
+                                        "description": "Peru"
+                                    },
+                                    "PF": {
+                                        "description": "French Polynesia"
+                                    },
+                                    "PG": {
+                                        "description": "Papua New Guinea"
+                                    },
+                                    "PH": {
+                                        "description": "Philippines"
+                                    },
+                                    "PK": {
+                                        "description": "Pakistan"
+                                    },
+                                    "PL": {
+                                        "description": "Poland"
+                                    },
+                                    "PM": {
+                                        "description": "Saint Pierre and Miquelon"
+                                    },
+                                    "PN": {
+                                        "description": "Pitcairn"
+                                    },
+                                    "PR": {
+                                        "description": "Puerto Rico"
+                                    },
+                                    "PS": {
+                                        "description": "Palestinian Territory"
+                                    },
+                                    "PT": {
+                                        "description": "Portugal"
+                                    },
+                                    "PW": {
+                                        "description": "Palau"
+                                    },
+                                    "PY": {
+                                        "description": "Paraguay"
+                                    },
+                                    "QA": {
+                                        "description": "Qatar"
+                                    },
+                                    "RE": {
+                                        "description": "Reunion"
+                                    },
+                                    "RO": {
+                                        "description": "Romania"
+                                    },
+                                    "RS": {
+                                        "description": "Republic of Serbia"
+                                    },
+                                    "RW": {
+                                        "description": "Rwanda"
+                                    },
+                                    "SA": {
+                                        "description": "Saudi Arabia"
+                                    },
+                                    "SB": {
+                                        "description": "Solomon Islands"
+                                    },
+                                    "SC": {
+                                        "description": "Seychelles"
+                                    },
+                                    "SE": {
+                                        "description": "Sweden"
+                                    },
+                                    "SG": {
+                                        "description": "Singapore"
+                                    },
+                                    "SH": {
+                                        "description": "Saint Helena"
+                                    },
+                                    "SI": {
+                                        "description": "Slovenia"
+                                    },
+                                    "SJ": {
+                                        "description": "Svalbard and Jan Mayen"
+                                    },
+                                    "SK": {
+                                        "description": "Slovakia"
+                                    },
+                                    "SL": {
+                                        "description": "Sierra Leone"
+                                    },
+                                    "SM": {
+                                        "description": "San Marino"
+                                    },
+                                    "SN": {
+                                        "description": "Senegal"
+                                    },
+                                    "SR": {
+                                        "description": "Suriname"
+                                    },
+                                    "ST": {
+                                        "description": "Sao Tome and Principe"
+                                    },
+                                    "SV": {
+                                        "description": "El Salvador"
+                                    },
+                                    "SZ": {
+                                        "description": "Swaziland"
+                                    },
+                                    "TC": {
+                                        "description": "Turks and Caicos Islands"
+                                    },
+                                    "TD": {
+                                        "description": "Chad"
+                                    },
+                                    "TF": {
+                                        "description": "French Southern Terr."
+                                    },
+                                    "TG": {
+                                        "description": "Togo"
+                                    },
+                                    "TH": {
+                                        "description": "Thailand"
+                                    },
+                                    "TJ": {
+                                        "description": "Tajikistan"
+                                    },
+                                    "TK": {
+                                        "description": "Tokelau"
+                                    },
+                                    "TL": {
+                                        "description": "Timor-Leste"
+                                    },
+                                    "TM": {
+                                        "description": "Turkmenistan"
+                                    },
+                                    "TN": {
+                                        "description": "Tunisia"
+                                    },
+                                    "TO": {
+                                        "description": "Tonga"
+                                    },
+                                    "TR": {
+                                        "description": "Turkey"
+                                    },
+                                    "TT": {
+                                        "description": "Trinidad and Tobago"
+                                    },
+                                    "TV": {
+                                        "description": "Tuvalu"
+                                    },
+                                    "TW": {
+                                        "description": "Taiwan"
+                                    },
+                                    "TZ": {
+                                        "description": "Tanzania"
+                                    },
+                                    "UA": {
+                                        "description": "Ukraine"
+                                    },
+                                    "UG": {
+                                        "description": "Uganda"
+                                    },
+                                    "UM": {
+                                        "description": "United States (M.O.I.)"
+                                    },
+                                    "US": {
+                                        "description": "United States"
+                                    },
+                                    "UY": {
+                                        "description": "Uruguay"
+                                    },
+                                    "UZ": {
+                                        "description": "Uzbekistan"
+                                    },
+                                    "VA": {
+                                        "description": "Holy See/ Vatican City"
+                                    },
+                                    "VC": {
+                                        "description": "Saint Vincent/ Grenadines"
+                                    },
+                                    "VG": {
+                                        "description": "British Virgin Islands"
+                                    },
+                                    "VI": {
+                                        "description": "U.S. Virgin Islands"
+                                    },
+                                    "VN": {
+                                        "description": "Vietnam"
+                                    },
+                                    "VU": {
+                                        "description": "Vanuatu"
+                                    },
+                                    "WF": {
+                                        "description": "Wallis and Futuna"
+                                    },
+                                    "WS": {
+                                        "description": "Samoa"
+                                    },
+                                    "XK": {
+                                        "description": "Kosovo"
+                                    },
+                                    "YT": {
+                                        "description": "Mayotte"
+                                    },
+                                    "ZA": {
+                                        "description": "South Africa"
+                                    },
+                                    "ZM": {
+                                        "description": "Zambia"
+                                    }
+                                }
+                            }
+                        },
+                        "unit_price": {
+                            "title": "Money",
+                            "description": "Override price. This price applies to customers located in the countries for this unit price override.",
+                            "required":true,
+                            "type": "object",
+                            "properties": {
+                                "amount": {
+                                    "type": "string",
+                                    "required":true,
+                                    "description": "Amount in the lowest denomination for the currency, e.g. 10 USD = 1000 (cents)."
+                                },
+                                "currency_code": {
+                                    "title": "Currency code",
+                                    "required":true,
+                                    "description": "Supported three-letter ISO 4217 currency code.",
+                                    "type": "string",
+                                    "enum": [
+                                        "USD",
+                                        "EUR",
+                                        "GBP",
+                                        "JPY",
+                                        "AUD",
+                                        "CAD",
+                                        "CHF",
+                                        "HKD",
+                                        "SGD",
+                                        "SEK",
+                                        "ARS",
+                                        "BRL",
+                                        "CNY",
+                                        "COP",
+                                        "CZK",
+                                        "DKK",
+                                        "HUF",
+                                        "ILS",
+                                        "INR",
+                                        "KRW",
+                                        "MXN",
+                                        "NOK",
+                                        "NZD",
+                                        "PLN",
+                                        "RUB",
+                                        "THB",
+                                        "TRY",
+                                        "TWD",
+                                        "UAH",
+                                        "ZAR"
+                                    ],
+                                    "maxLength": 3,
+                                    "minLength": 3,
+                                    "enum-descriptions": {
+                                        "USD": {
+                                            "description": "United States Dollar"
+                                        },
+                                        "EUR": {
+                                            "description": "Euro"
+                                        },
+                                        "GBP": {
+                                            "description": "Pound Sterling"
+                                        },
+                                        "JPY": {
+                                            "description": "Japanese Yen"
+                                        },
+                                        "AUD": {
+                                            "description": "Australian Dollar"
+                                        },
+                                        "CAD": {
+                                            "description": "Canadian Dollar"
+                                        },
+                                        "CHF": {
+                                            "description": "Swiss Franc"
+                                        },
+                                        "HKD": {
+                                            "description": "Hong Kong Dollar"
+                                        },
+                                        "SGD": {
+                                            "description": "Singapore Dollar"
+                                        },
+                                        "SEK": {
+                                            "description": "Swedish Krona"
+                                        },
+                                        "ARS": {
+                                            "description": "Argentine Peso"
+                                        },
+                                        "BRL": {
+                                            "description": "Brazilian Real"
+                                        },
+                                        "CNY": {
+                                            "description": "Chinese Yuan"
+                                        },
+                                        "COP": {
+                                            "description": "Colombian Peso"
+                                        },
+                                        "CZK": {
+                                            "description": "Czech Koruna"
+                                        },
+                                        "DKK": {
+                                            "description": "Danish Krone"
+                                        },
+                                        "HUF": {
+                                            "description": "Hungarian Forint"
+                                        },
+                                        "ILS": {
+                                            "description": "Israeli Shekel"
+                                        },
+                                        "INR": {
+                                            "description": "Indian Rupee"
+                                        },
+                                        "KRW": {
+                                            "description": "South Korean Won"
+                                        },
+                                        "MXN": {
+                                            "description": "Mexican Peso"
+                                        },
+                                        "NOK": {
+                                            "description": "Norwegian Krone"
+                                        },
+                                        "NZD": {
+                                            "description": "New Zealand Dollar"
+                                        },
+                                        "PLN": {
+                                            "description": "Polish Zloty"
+                                        },
+                                        "RUB": {
+                                            "description": "Russian Ruble"
+                                        },
+                                        "THB": {
+                                            "description": "Thai Baht"
+                                        },
+                                        "TRY": {
+                                            "description": "Turkish Lira"
+                                        },
+                                        "TWD": {
+                                            "description": "New Taiwan Dollar"
+                                        },
+                                        "UAH": {
+                                            "description": "Ukrainian Hryvnia"
+                                        },
+                                        "ZAR": {
+                                            "description": "South African Rand"
+                                        }
+                                    }
+                                }
+                            }
+                      
+                        }
+                    }
+                }
+            },
+            "quantity": {
+                "title": "price_quantity",
+                "x-stoplight": {
+                    "id": "if5johtzdsycf"
+                },
+                "type": "object",
+                "examples": [
+                    {
+                        "minimum": 1,
+                        "maximum": 100
+                    }
+                ],
+                "properties": {
+                    "minimum": {
+                        "type": "integer",
+                        "description": "Minimum quantity of the product related to this price that can be bought. Required if `maximum` set.",
+                        "minimum": 1,
+                        "default": 1,
+                        "example": 1,
+                        "maximum": 999999999,
+                        "x-stoplight": {
+                            "id": "oflo8grl1ksqa"
+                        }
+                    },
+                    "maximum": {
+                        "type": "integer",
+                        "description": "Maximum quantity of the product related to this price that can be bought. Required if `minimum` set. Must be greater than the `minimum` value.",
+                        "minimum": 1,
+                        "default": 100,
+                        "example": 100,
+                        "maximum": 999999999,
+                        "x-stoplight": {
+                            "id": "ofeqajr1j4n2y"
+                        }
+                    }
+                },
+                "required": [
+                    "minimum",
+                    "maximum"
+                ],
+                "description": "Limits on how many times the related product can be purchased at this price. Useful for discount campaigns."
+            },
+            "status": {
+                "title": "Status",
+                "x-stoplight": {
+                    "id": "wsz9ku7ig0nku"
+                },
+                "type": "string",
+                "description": "Whether this entity can be used in Paddle.",
+                "enum": [
+                    "active",
+                    "archived"
+                ],
+                "x-enum-descriptions": {
+                    "active": {
+                        "description": "Entity is active and can be used."
+                    },
+                    "archived": {
+                        "description": "Entity is archived, so can't be used."
+                    }
+                }
+            },
+            "custom_data": {
+                "title": "Custom data",
+                "x-stoplight": {
+                    "id": "d93lzwpbl5p79"
+                },
+                "type": [
+                    "object",
+                    "null"
+                ],
+                "description": "Your own structured key-value data.",
+                "examples": [
+                    {
+                        "customer_reference_id": "abcd1234"
+                    }
+                ]
+            }
+        ]
+      }
+    },
+    "getOne": {
+      "title": "Get a product",
+      "api": {
+        "method": "get",
+        "endpoint": "/products/{product_id}",
+        "queryParameters": [
+          {
+            "name": "include",
+            "description": "Include related entities in the response.",
+            "schema": {
+              "type": "string",
+              "enum": ["prices"],
+              "enum-descriptions": {
+                "prices": {
+                  "description": "Include an array of prices related to this product."
+                }
+              }
+            }
+          }
+        ]
+      },
+      "pathParameters": [
+        {
+          "name": "product_id",
+          "description": "Paddle ID of the product entity to work with.",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "update": {
+      "title": "Get a product",
+      "api": {
+        "method": "patch",
+        "endpoint": "/products",
+        "bodyParameters": [
+          {
+            "name": "name",
+            "description": "Name of this product.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          },
+          {
+            "name": "description",
+            "description": "Short description for this product.",
+            "schema": {
+              "type": ["string", "null"],
+              "maxLength": 2048
+            }
+          },
+          {
+            "name": "tax_category",
+            "description": "Tax category for this product. Used for charging the correct rate of tax. Selected tax category must be enabled on your Paddle account.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "digital-goods",
+                "ebooks",
+                "implementation-services",
+                "professional-services",
+                "saas",
+                "software-programming-services",
+                "standard",
+                "training-services",
+                "website-hosting"
+              ],
+              "enum-descriptions": {
+                "digital-goods": {
+                  "description": "Non-customizable digital files or media (not software) acquired with an up front payment that can be accessed without any physical product being delivered."
+                },
+                "ebooks": {
+                  "description": "Digital books and educational material which is sold with permanent rights for use by the customer."
+                },
+                "implementation-services": {
+                  "description": "Remote configuration, set-up, and integrating software on behalf of a customer."
+                },
+                "professional-services": {
+                  "description": "Services that involve the application of your expertise and specialized knowledge of a software product."
+                },
+                "saas": {
+                  "description": "Products that allow users to connect to and use online or cloud-based applications over the Internet."
+                },
+                "software-programming-services": {
+                  "description": "Services that can be used to customize and white label software products."
+                },
+                "standard": {
+                  "description": "Software products that are pre-written and can be downloaded and installed onto a local device."
+                },
+                "training-services": {
+                  "description": "Training and education services related to software products."
+                },
+                "website-hosting": {
+                  "description": "Cloud storage service for personal or corporate information, assets, or intellectual property."
+                }
+              }
+            }
+          },
+          {
+            "name": "image_url",
+            "description": "Image for this product. Included in the checkout and on some customer documents.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "custom_data",
+            "description": "Your own structured key-value data.",
+            "schema": {
+              "type": ["object", "null"]
+            }
+          },
+          {
+            "name": "status",
+            "description": "Whether this entity can be used in Paddle.",
+            "schema": {
+              "type": "string",
+              "enum": ["active", "archived"],
+              "enum-descriptions": {
+                "active": {
+                  "description": "Entity is active and can be used."
+                },
+                "archived": {
+                  "description": "Entity is archived, so can't be used."
+                }
+              },
+              "default": "active"
+            }
+          }
+        ]
+      },
+      "pathParameters": [
+        {
+          "name": "product_id",
+          "description": "Paddle ID of the product entity to work with.",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    }
+  }
