@@ -1,0 +1,355 @@
+{
+  "title": "Products",
+  "list": {
+    "title": "List products",
+    "api": {
+      "method": "get",
+      "endpoint": "/products",
+      "queryParameters": [
+        {
+          "name": "after",
+          "description": "Return entities after the specified cursor. Used for working through paginated results.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "id",
+          "description": "Return only the IDs specified. Use a comma separated list to get multiple entities.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "include",
+          "description": "Include related entities in the response.",
+          "schema": {
+            "type": "string",
+            "enum": ["prices"],
+            "enum-descriptions": {
+              "prices": {
+                "description": "Include an array of prices related to this product."
+              }
+            }
+          }
+        },
+        {
+          "name": "order_by",
+          "description": "Order returned entities by the specified field and direction (`[ASC]` or `[DESC]`).",
+          "schema": {
+            "type": "string",
+            "enum": ["ASC", "DESC"],
+            "default": "ASC"
+          }
+        },
+        {
+          "name": "per_page",
+          "description": "Set how many entities are returned per page.",
+          "schema": {
+            "type": "integer",
+            "default": 10
+          }
+        },
+        {
+          "name": "status",
+          "description": "Return entities that match the specified status. Use a comma separated list to specify multiple status values.",
+          "schema": {
+            "type": "string",
+            "default": "active",
+            "enum": ["active", "archived"],
+            "enum-descriptions": {
+              "active": {
+                "description": "Return entities where the status is `active`. Returned entities can be used in Paddle and are returned when listing entities."
+              },
+              "archived": {
+                "description": "Return entities where the status is `archived`. Returned entities can't be used for billing and aren't returned when listing entities."
+              }
+            }
+          }
+        },
+        {
+          "name": "tax_category",
+          "description": "Return entities that match the specified tax category.",
+          "schema": {
+            "type": "string",
+            "enum": [
+              "digital-goods",
+              "ebooks",
+              "implementation-services",
+              "professional-services",
+              "saas",
+              "software-programming-services",
+              "standard",
+              "training-services",
+              "website-hosting"
+            ],
+            "enum-descriptions": {
+              "digital-goods": {
+                "description": "Return entities with the tax category of `digital-goods`. Non-customizable digital files or media (not software) acquired with an up front payment that can be accessed without any physical product being delivered."
+              },
+              "ebooks": {
+                "description": "Return entities with the tax category of `ebooks`. Digital books and educational material which is sold with permanent rights for use by the customer."
+              },
+              "implementation-services": {
+                "description": "Return entities with the tax category of `implementation-services`. Remote configuration, set-up, and integrating software on behalf of a customer."
+              },
+              "professional-services": {
+                "description": "Return entities with the tax category of `professional-services`. Services that involve the application of your expertise and specialized knowledge of a software product."
+              },
+              "saas": {
+                "description": "Return entities with the tax category of `saas`. Products that allow users to connect to and use online or cloud-based applications over the Internet."
+              },
+              "software-programming-services": {
+                "description": "Return entities with the tax category of `software-programming-services`. Services that can be used to customize and white label software products."
+              },
+              "standard": {
+                "description": "Return entities with the tax category of `standard`. Software products that are pre-written and can be downloaded and installed onto a local device."
+              },
+              "training-services": {
+                "description": "Return entities with the tax category of `training-services`. Training and education services related to software products."
+              },
+              "website-hosting": {
+                "description": "Return entities with the tax category of `website-hosting`. Cloud storage service for personal or corporate information, assets, or intellectual property."
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "create": {
+    "title": "Create a product",
+    "api": {
+      "method": "post",
+      "endpoint": "/products",
+      "bodyParameters": [
+        {
+          "name": "name",
+          "description": "Name of this product.",
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        {
+          "name": "description",
+          "description": "Short description for this product.",
+          "schema": {
+            "required": true,
+            "type": ["string", "null"],
+            "maxLength": 2048
+          }
+        },
+        {
+          "name": "tax_category",
+          "description": "Tax category for this product. Used for charging the correct rate of tax. Selected tax category must be enabled on your Paddle account.",
+          "schema": {
+            "required": true,
+            "type": "string",
+            "enum": [
+              "digital-goods",
+              "ebooks",
+              "implementation-services",
+              "professional-services",
+              "saas",
+              "software-programming-services",
+              "standard",
+              "training-services",
+              "website-hosting"
+            ],
+            "enum-descriptions": {
+              "digital-goods": {
+                "description": "Non-customizable digital files or media (not software) acquired with an up front payment that can be accessed without any physical product being delivered."
+              },
+              "ebooks": {
+                "description": "Digital books and educational material which is sold with permanent rights for use by the customer."
+              },
+              "implementation-services": {
+                "description": "Remote configuration, set-up, and integrating software on behalf of a customer."
+              },
+              "professional-services": {
+                "description": "Services that involve the application of your expertise and specialized knowledge of a software product."
+              },
+              "saas": {
+                "description": "Products that allow users to connect to and use online or cloud-based applications over the Internet."
+              },
+              "software-programming-services": {
+                "description": "Services that can be used to customize and white label software products."
+              },
+              "standard": {
+                "description": "Software products that are pre-written and can be downloaded and installed onto a local device."
+              },
+              "training-services": {
+                "description": "Training and education services related to software products."
+              },
+              "website-hosting": {
+                "description": "Cloud storage service for personal or corporate information, assets, or intellectual property."
+              }
+            }
+          }
+        },
+        {
+          "name": "image_url",
+          "description": "Image for this product. Included in the checkout and on some customer documents.",
+          "schema": {
+            "type": ["string"]
+          }
+        },
+        {
+          "name": "custom_data",
+          "description": "Your own structured key-value data.",
+          "schema": {
+            "type": ["object", "null"]
+          }
+        }
+      ]
+    }
+  },
+  "getOne": {
+    "title": "Get a product",
+    "api": {
+      "method": "get",
+      "endpoint": "/products/{product_id}",
+      "queryParameters": [
+        {
+          "name": "include",
+          "description": "Include related entities in the response.",
+          "schema": {
+            "type": "string",
+            "enum": ["prices"],
+            "enum-descriptions": {
+              "prices": {
+                "description": "Include an array of prices related to this product."
+              }
+            }
+          }
+        }
+      ]
+    },
+    "pathParameters": [
+      {
+        "name": "product_id",
+        "description": "Paddle ID of the product entity to work with.",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ]
+  },
+  "update": {
+    "title": "Get a product",
+    "api": {
+      "method": "patch",
+      "endpoint": "/products",
+      "bodyParameters": [
+        {
+          "name": "name",
+          "description": "Name of this product.",
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        {
+          "name": "description",
+          "description": "Short description for this product.",
+          "schema": {
+            "type": ["string", "null"],
+            "maxLength": 2048
+          }
+        },
+        {
+          "name": "tax_category",
+          "description": "Tax category for this product. Used for charging the correct rate of tax. Selected tax category must be enabled on your Paddle account.",
+          "schema": {
+            "type": "string",
+            "enum": [
+              "digital-goods",
+              "ebooks",
+              "implementation-services",
+              "professional-services",
+              "saas",
+              "software-programming-services",
+              "standard",
+              "training-services",
+              "website-hosting"
+            ],
+            "enum-descriptions": {
+              "digital-goods": {
+                "description": "Non-customizable digital files or media (not software) acquired with an up front payment that can be accessed without any physical product being delivered."
+              },
+              "ebooks": {
+                "description": "Digital books and educational material which is sold with permanent rights for use by the customer."
+              },
+              "implementation-services": {
+                "description": "Remote configuration, set-up, and integrating software on behalf of a customer."
+              },
+              "professional-services": {
+                "description": "Services that involve the application of your expertise and specialized knowledge of a software product."
+              },
+              "saas": {
+                "description": "Products that allow users to connect to and use online or cloud-based applications over the Internet."
+              },
+              "software-programming-services": {
+                "description": "Services that can be used to customize and white label software products."
+              },
+              "standard": {
+                "description": "Software products that are pre-written and can be downloaded and installed onto a local device."
+              },
+              "training-services": {
+                "description": "Training and education services related to software products."
+              },
+              "website-hosting": {
+                "description": "Cloud storage service for personal or corporate information, assets, or intellectual property."
+              }
+            }
+          }
+        },
+        {
+          "name": "image_url",
+          "description": "Image for this product. Included in the checkout and on some customer documents.",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "custom_data",
+          "description": "Your own structured key-value data.",
+          "schema": {
+            "type": ["object", "null"]
+          }
+        },
+        {
+          "name": "status",
+          "description": "Whether this entity can be used in Paddle.",
+          "schema": {
+            "type": "string",
+            "enum": ["active", "archived"],
+            "enum-descriptions": {
+              "active": {
+                "description": "Entity is active and can be used."
+              },
+              "archived": {
+                "description": "Entity is archived, so can't be used."
+              }
+            },
+            "default": "active"
+          }
+        }
+      ]
+    },
+    "pathParameters": [
+      {
+        "name": "product_id",
+        "description": "Paddle ID of the product entity to work with.",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ]
+  }
+}
